@@ -148,7 +148,7 @@ class EncoderDecoder(ModifiableModule):
         self.dec_lstm = GradLSTM(input_size, hidden_size)
         self.dec_output = GradLinear(hidden_size, vocab_size)
         
-        self.max_length = 20
+        self.max_length = 60
         
         
     def forward(self, sequence_list):
@@ -162,11 +162,12 @@ class EncoderDecoder(ModifiableModule):
         for sequence in sequence_list:
             this_seq = []
             # Iterate over the sequence
-            for elt in sequence:
+            # $$ split sequence by space  instead of by character
+            for elt in sequence.split():
                 ind = self.char2ind[elt]
                 this_seq.append(ind)
             all_seqs.append(torch.LongTensor(this_seq))
-
+        #print(sequence.split(), len(sequence.split()), all_seqs)
         max_length = max([len(x) for x in sequence_list])
         if max_length > 0:    
             # Pad the sequences to allow batching 
@@ -229,7 +230,7 @@ class EncoderDecoder(ModifiableModule):
             for index, elt in enumerate(label):
                 char = self.ind2char[elt.item()]
                 
-                out_strings[index] += char
+                out_strings[index] += char + " "
                 prev_output.append(char)
         
         return out_strings, logits
