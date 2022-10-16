@@ -85,20 +85,22 @@ def load_dataset(dataset_file):
     langs = []
     for line in fi:
         parts = line.strip().split("\t")
-        
-        train_set = [elt.split(",") for elt in parts[0].split()]
-        dev_set = [elt.split(",") for elt in parts[1].split()]
-        test_set = [elt.split(",") for elt in parts[2].split()]
+        # $$ changed input-output split by "," to ":" due to COGS having "," in the data
+        # $$ changed parts split by " " to "%" due to COGS having space in the data
+        train_set = [elt.split(":") for elt in parts[0].split("%")]
+        dev_set = [elt.split(":") for elt in parts[1].split("%")]
+        test_set = [elt.split(":") for elt in parts[2].split("%")]
         vocab = parts[3].split()
-        key_string = parts[4].split(",")
+        # $$ the below lines are commented since they are unnecessary for our experiments
+        #key_string = parts[4].split(",")
 
-        v_list = key_string[0].split()
-        c_list = key_string[1].split()
-        ranking = [int(x) for x in key_string[2].split()]
+        #v_list = key_string[0].split()
+        #c_list = key_string[1].split()
+        #ranking = [int(x) for x in key_string[2].split()]
 
-        key = [v_list, c_list, ranking]
-
-        langs.append([train_set, dev_set, test_set, vocab, key])
+        #key = [v_list, c_list, ranking]
+        # $$ removed key at the end of append
+        langs.append([train_set, dev_set, test_set, vocab])
 
     return langs
 
@@ -115,6 +117,7 @@ def load_dataset_cv(dataset_file):
         dev_set = [elt.split(",") for elt in parts[1].split()]
         test_set = [elt.split(",") for elt in parts[2].split()]
         vocab = parts[3].split()
+        vocab.append(" ")
 
         langs.append([train_set, dev_set, test_set, vocab])
 
