@@ -7,6 +7,9 @@ def batchify_list(lst, batch_size=100):
     this_batch_out = []
    
     for index, elt in enumerate(lst):
+        # $$ added if clause to ignore the inputs that are empty
+        if elt == [""]:
+            continue
         this_batch_in.append(elt[0])
         this_batch_out.append(elt[1])
         
