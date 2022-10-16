@@ -1,13 +1,5 @@
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable as V
-import random
-
 from models import *
 from utils import *
-from phonology_task_creation import *
 from load_data import *
 
 # Compute the loss and accuracy for a single batch
@@ -21,16 +13,27 @@ def get_loss(model, batch, criterion):
 
     # Count how many predicted outputs are correct
     for index, output_guess in enumerate(output):
-        if process_output(output_guess) == outp[index]:
-            correct += 1
-        total += 1
+        #print("system output: ", len(process_output(output_guess).split()), process_output(output_guess))
+        #print("target output: ", len(outp[index].split()), outp[index])
+        for i, s in enumerate(process_output(output_guess).split()):
+            #print(i, len(outp[index].split()))
+            if len(outp[index].split()) > i and s == outp[index].split()[i]:
+                correct += 1
+                #print(s, outp[index].split()[i])
+            total += 1
+        #if process_output(output_guess) == outp[index]:
+            #correct += 1
+            #print("correct")
+        #total += 1
+
 
 
     # Create a tensor for the correct output
     all_seqs = []
     for sequence in outp:
         this_seq = []
-        for elt in sequence:
+        # $$ split sequence by space (into whole words) instead of by character
+        for elt in sequence.split():
             ind = model.char2ind[elt]
             this_seq.append(ind)
         this_seq.append(model.char2ind["EOS"])
@@ -46,6 +49,9 @@ def get_loss(model, batch, criterion):
 
     # Average the loss over the sequence
     loss = seq_loss / len(logits)
+    #print(loss)
+    #print(correct)
+    #print(total)
 
     # Return the loss over the batch, the number of correct predictions,
     # and the total number of predictions
@@ -85,15 +91,19 @@ def train_model(model, task, max_epochs=10, lr=0.001, batch_size=100, print_ever
             if i % print_every == 0:
                 dev_correct = 0
                 dev_total = 0
+                dev_loss = 0
 
                 # Compute the dev loss and dev accuracy
                 for batch in dev_set:
                     batch_loss, batch_correct, batch_total = get_loss(model, batch, criterion)
                     dev_correct += batch_correct
                     dev_total += batch_total
+                    dev_loss += batch_loss
 
                 dev_acc = dev_correct * 1.0 / dev_total
+                #print("1")
                 print("Dev accuracy at iteration " + str(i) + ":", dev_acc)
+                #print("dev loss", dev_loss)
                
                 # Determine whether to early stop
                 if dev_acc > best_dev_acc:
@@ -144,7 +154,7 @@ def fit_task(model, task, meta=False, train=True, lr_inner=0.01, batch_size=100,
 
     # Loss function; ignore_index is to handle padding (so you
     # don't compute loss for the padded parts)
-    criterion = nn.NLLLoss(ignore_index=0)
+    criterion = nn.CrossEntropyLoss(ignore_index=0)
 
 
     # Training
@@ -188,7 +198,6 @@ def fit_task(model, task, meta=False, train=True, lr_inner=0.01, batch_size=100,
 
     # Average the test loss over the number of test batches
     test_loss /= len(test_set)
-
     # Compute the test accuracy
     test_acc = test_correct * 1.0 / test_total
 
@@ -213,7 +222,7 @@ def maml(model, train_set, dev_set, max_epochs=10, lr_inner=0.01, lr_outer=0.001
     optimizer = torch.optim.Adam(model.params(), lr=lr_outer)
     done = False
     count_since_improved = 0
-    best_dev_acc = 0.0
+    best_dev_acc = -1
     
     for _ in range(max_epochs):
         test_loss = 0
@@ -224,13 +233,14 @@ def maml(model, train_set, dev_set, max_epochs=10, lr_inner=0.01, lr_outer=0.001
             
             # Get the loss for one training task
             task_loss, task_acc, _ = fit_task(model, t, meta=True, lr_inner=lr_inner, batch_size=inner_batch_size)
+            #print("task loss: ", task_loss)
             test_loss += task_loss
-            
+
             # Compute the gradient on the test loss, backpropagate it, and update the model's weights
             if (i + 1) % outer_batch_size == 0:
                 # Average the test loss over the batch
                 test_loss /= outer_batch_size
-
+                #print("test loss:", test_loss)
                 # Backpropagate the test loss
                 test_loss.backward(create_graph=False, retain_graph=True)
                 
