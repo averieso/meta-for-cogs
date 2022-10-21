@@ -30,7 +30,7 @@ def get_loss(model, batch, criterion):
     all_seqs = []
     for sequence in outp:
         this_seq = []
-        for elt in sequence:
+        for elt in sequence.split():
             ind = model.char2ind[elt]
             this_seq.append(ind)
         this_seq.append(model.char2ind["EOS"])
