@@ -8,4 +8,4 @@ modified code to meta-learn based on "[Universal linguistic inductive biases via
 `python evaluation.py --data_prefix DATA_PREFIX --vocab_size 872 --emb_size 512 --hidden_size 512 --lr_inner 1.0 --inner_batch_size 100 --save_prefix MODEL_PREFIX`
 
 # One-shot learning on generalization dataset (evaluation)
-`python evaluation.py --data_v3 data_gen --vocab_size 872 --emb_size 512 --hidden_size 512 --lr_inner 1.0 --save_prefix MODEL_PREFIX`
+`python evaluation.py --data_prefix data_gen --vocab_size 872 --emb_size 512 --hidden_size 512 --lr_inner 1.0 --save_prefix MODEL_PREFIX`
