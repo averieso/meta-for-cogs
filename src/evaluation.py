@@ -1,13 +1,6 @@
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable as V
-import random
 import argparse
 
 from load_data import *
-from utils import *
 from training import *
 from models import *
 
@@ -51,10 +44,14 @@ if args.eval_technique == "meta":
 
     # Give overall average accuracy across all languages
     else:
-        avg_acc = average_acc(model, test_set, lr_inner=args.lr_inner, batch_size=args.inner_batch_size, train=train, update_embeddings=args.update_embeddings=="True")
+        acc_list, avg_acc = average_acc(model, test_set, lr_inner=args.lr_inner, batch_size=args.inner_batch_size, train=train, update_embeddings=args.update_embeddings=="True")
     print("Average accuracy:", avg_acc)
+    #print(acc_list)
+    with open("../output/gen_acc_%s.csv"%args.save_prefix) as f:
+        for key, value in acc_list.items():
+            f.write('%s,%s\n' % (key, value))
 
-# Evaluate the model by training it to convergence and measuring how many steps that takes
+    # Evaluate the model by training it to convergence and measuring how many steps that takes
 elif args.eval_technique == "converge":
     total_iters = 0
     total_test_acc = 0

@@ -50,7 +50,7 @@ def get_loss(model, batch, criterion):
     # Average the loss over the sequence
     loss = seq_loss / len(logits)
     #print(loss)
-    #print(correct)
+    #print(correct, total)
     #print(total)
 
     # Return the loss over the batch, the number of correct predictions,
@@ -74,7 +74,7 @@ def train_model(model, task, max_epochs=10, lr=0.001, batch_size=100, print_ever
     vocab = task[3]
 
     model.set_dicts(vocab)
-    criterion = nn.NLLLoss(ignore_index=0)
+    criterion = nn.CrossEntropyLoss(ignore_index=0)
 
     for epoch in range(max_epochs):
         if done:
@@ -251,7 +251,7 @@ def maml(model, train_set, dev_set, max_epochs=10, lr_inner=0.01, lr_outer=0.001
                 
             # Evaluate on the dev set
             if i % print_every == 0:
-                dev_acc = average_acc(model, dev_set, lr_inner=lr_inner, batch_size=inner_batch_size)
+                _, dev_acc = average_acc(model, dev_set, lr_inner=lr_inner, batch_size=inner_batch_size)
                 print("Dev accuracy at iteration " + str(i) + ":", dev_acc)
 
                 # Determine whether to early stop
@@ -271,15 +271,18 @@ def maml(model, train_set, dev_set, max_epochs=10, lr_inner=0.01, lr_outer=0.001
                
 # Compute the average accuracy across all tasks in a dataset (e.g. the dev set)
 def average_acc(model, dataset, lr_inner=0.01, batch_size=100, train=True, update_embeddings=True):
+    acc_list = {}
     total_acc = 0
 
-    for task in dataset:
+    for i, task in enumerate(dataset):
         loss, acc, _ = fit_task(model, task, lr_inner=lr_inner, meta=False, batch_size=batch_size, train=train, update_embeddings=update_embeddings)
+        acc_list[i] = acc
+        #acc_list[i]['loss'] = acc
         total_acc += acc
 
     average_acc = total_acc * 1.0 / len(dataset)
     
-    return average_acc
+    return acc_list, average_acc
 
 # Compute the average accuracy broken down by constraint ranking
 def average_acc_by_ranking(model, dataset, lr_inner=0.01, batch_size=100, train=True):
@@ -300,6 +303,7 @@ def average_acc_by_ranking(model, dataset, lr_inner=0.01, batch_size=100, train=
         avg_acc_list.append([key, acc_dict[key][0] / acc_dict[key][1]])
 
     return avg_acc_list
+
 
 
 
