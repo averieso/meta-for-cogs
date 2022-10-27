@@ -47,7 +47,7 @@ if args.eval_technique == "meta":
         acc_list, avg_acc = average_acc(model, test_set, lr_inner=args.lr_inner, batch_size=args.inner_batch_size, train=train, update_embeddings=args.update_embeddings=="True")
     print("Average accuracy:", avg_acc)
     #print(acc_list)
-    with open("../output/gen_acc_%s.csv"%args.save_prefix) as f:
+    with open("../output/gen_acc_%s.csv"%args.save_prefix,"w") as f:
         for key, value in acc_list.items():
             f.write('%s,%s\n' % (key, value))
 
