@@ -5,7 +5,7 @@ modified code to meta-learn based on "[Universal linguistic inductive biases via
 `python main.py --data_prefix DATA_PREFIX --method maml --save_prefix MODEL_PREFIX --hidden_size 512 --vocab_size 872 --inner_batch_size 5  --emb_size 512 --patience 10`
 
 ## evaluate on test data (in-distribution)
-`python evaluation.py --data_prefix DATA_PREFIX --vocab_size 872 --emb_size 512 --hidden_size 512 --lr_inner 1.0 --inner_batch_size 100 --save_prefix MODEL_PREFIX`
+`python evaluation.py --data_prefix DATA_PREFIX --vocab_size 872 --emb_size 512 --hidden_size 512 --lr_inner 0.1 --inner_batch_size 1 --save_prefix MODEL_PREFIX`
 
 # One-shot learning on generalization dataset (evaluation)
-`python evaluation.py --data_prefix data_gen --vocab_size 872 --emb_size 512 --hidden_size 512 --lr_inner 1.0 --save_prefix MODEL_PREFIX`
+`python evaluation.py --data_prefix data_gen_v2 --vocab_size 872 --emb_size 512 --hidden_size 512 --lr_inner 0.1 --inner_batch_size 1 --save_prefix MODEL_PREFIX`
