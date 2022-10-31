@@ -51,7 +51,7 @@ if args.eval_technique == "meta":
                                                         batch_size=args.inner_batch_size,
                                                         train=train, update_embeddings=args.update_embeddings == "True",
                                                         exact=True)
-            print("Exact average accuracy:", avg_acc)
+            print("Exact average accuracy:", exact_avg_acc)
             with open("../output/gen_exact_acc_%s_%s.csv" % (args.save_prefix, args.data_prefix), "w") as f:
                 for key, value in exact_acc_list.items():
                     f.write('%s,%s\n' % (key, value))
