@@ -46,7 +46,7 @@ if args.eval_technique == "meta":
 
     # Give overall average accuracy across all languages
     else:
-        if args.exact == True:
+        if args.exact == "True":
             exact_acc_list, exact_avg_acc = average_acc(model, test_set, lr_inner=args.lr_inner,
                                                         batch_size=args.inner_batch_size,
                                                         train=train, update_embeddings=args.update_embeddings == "True",
