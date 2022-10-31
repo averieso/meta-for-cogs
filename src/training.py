@@ -3,7 +3,7 @@ from utils import *
 from load_data import *
 
 # Compute the loss and accuracy for a single batch
-def get_loss(model, batch, criterion):
+def get_loss(model, batch, criterion, exact = False):
     correct = 0
     total = 0
 
@@ -12,20 +12,22 @@ def get_loss(model, batch, criterion):
     seq_loss = 0
 
     # Count how many predicted outputs are correct
-    for index, output_guess in enumerate(output):
-       # print("system output: ", len(process_output(output_guess).split()), process_output(output_guess))
-       # print("target output: ", len(outp[index].split()), outp[index])
-        for i, s in enumerate(process_output(output_guess).split()):
-            #print(i, len(outp[index].split()))
-            if len(outp[index].split()) > i and s == outp[index].split()[i]:
+    if exact == False:
+        for index, output_guess in enumerate(output):
+            #print("system output: ", len(process_output(output_guess).split()), process_output(output_guess))
+            #print("target output: ", len(outp[index].split()), outp[index])
+            for i, s in enumerate(process_output(output_guess).split()):
+                #print(i, len(outp[index].split()))
+                if len(outp[index].split()) > i and s == outp[index].split()[i]:
+                    correct += 1
+                    #print(s, outp[index].split()[i])
+                total += 1
+    else:
+        # Count how many predicted outputs are correct
+        for index, output_guess in enumerate(output):
+            if process_output(output_guess) == outp[index]:
                 correct += 1
-                #print(s, outp[index].split()[i])
             total += 1
-        #if process_output(output_guess) == outp[index]:
-            #correct += 1
-            #print("correct")
-        #total += 1
-
 
 
     # Create a tensor for the correct output
@@ -142,7 +144,7 @@ def train_model(model, task, max_epochs=10, lr=0.001, batch_size=100, print_ever
 # meta: True if this is being called as part of metatraining; False otherwise
 # lr_inner: learning rate
 # batch_size: the batch size
-def fit_task(model, task, meta=False, train=True, lr_inner=0.01, batch_size=100, update_embeddings=True):
+def fit_task(model, task, meta=False, train=True, lr_inner=0.01, batch_size=100, update_embeddings=True, exact=False):
     # This task's training set, test set, and vocab
     training_set = batchify_list(task[0], batch_size=batch_size)
     test_set = batchify_list(task[2], batch_size=batch_size)
@@ -162,7 +164,7 @@ def fit_task(model, task, meta=False, train=True, lr_inner=0.01, batch_size=100,
         for batch in training_set:
             
             # Compute the loss on this batch
-            batch_loss, batch_correct, batch_total = get_loss(model_copy, batch, criterion)
+            batch_loss, batch_correct, batch_total = get_loss(model_copy, batch, criterion, exact = False)
 
             # Backprop the loss; setting create_graph as True enables 
             # double gradients for MAML
@@ -191,7 +193,7 @@ def fit_task(model, task, meta=False, train=True, lr_inner=0.01, batch_size=100,
 
     # Compute the test loss and test accuracy
     for batch in test_set:
-        batch_loss, batch_correct, batch_total = get_loss(model_copy, batch, criterion)
+        batch_loss, batch_correct, batch_total = get_loss(model_copy, batch, criterion, exact)
         test_loss += batch_loss
         test_correct += batch_correct
         test_total += batch_total
@@ -270,16 +272,16 @@ def maml(model, train_set, dev_set, max_epochs=10, lr_inner=0.01, lr_outer=0.001
                     break
                
 # Compute the average accuracy across all tasks in a dataset (e.g. the dev set)
-def average_acc(model, dataset, lr_inner=0.01, batch_size=100, train=True, update_embeddings=True):
+def average_acc(model, dataset, lr_inner=0.01, batch_size=100, train=True, update_embeddings=True, exact = False):
     acc_list = {}
     total_acc = 0
 
     for i, task in enumerate(dataset):
-        loss, acc, _ = fit_task(model, task, lr_inner=lr_inner, meta=False, batch_size=batch_size, train=train, update_embeddings=update_embeddings)
+        loss, acc, _ = fit_task(model, task, lr_inner=lr_inner, meta=False, batch_size=batch_size, train=train, update_embeddings=update_embeddings, exact=exact)
         acc_list[i] = acc
         #acc_list[i]['loss'] = acc
         total_acc += acc
-    print(len(dataset))
+
     average_acc = total_acc * 1.0 / len(dataset)
     
     return acc_list, average_acc
