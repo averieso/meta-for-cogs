@@ -1,13 +1,6 @@
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable as V
-import random
 import argparse
 
 from load_data import *
-from utils import *
 from training import *
 from models import *
 
@@ -30,6 +23,8 @@ parser.add_argument("--threshold", help="accuracy threshold after which you shou
 parser.add_argument("--by_ranking", help="whether to break down results by ranking", type=str, default="False")
 parser.add_argument("--train", help="whether to train the model on each task before evaluating", type=str, default="True")
 parser.add_argument("--update_embeddings", help="whether to update the embeddings on each task before evaluating", type=str, default="True")
+parser.add_argument("--exact", help="exact acc or token acc", type=str, default="False")
+
 args = parser.parse_args()
 
 # Functions for evaluating the learning abilities of a model
@@ -51,10 +46,24 @@ if args.eval_technique == "meta":
 
     # Give overall average accuracy across all languages
     else:
-        avg_acc = average_acc(model, test_set, lr_inner=args.lr_inner, batch_size=args.inner_batch_size, train=train, update_embeddings=args.update_embeddings=="True")
-    print("Average accuracy:", avg_acc)
+        if args.exact == "True":
+            exact_acc_list, exact_avg_acc = average_acc(model, test_set, lr_inner=args.lr_inner,
+                                                        batch_size=args.inner_batch_size,
+                                                        train=train, update_embeddings=args.update_embeddings == "True",
+                                                        exact=True)
+            print("Exact average accuracy:", exact_avg_acc)
+            with open("../output/gen_exact_acc_%s_%s.csv" % (args.save_prefix, args.data_prefix), "w") as f:
+                for key, value in exact_acc_list.items():
+                    f.write('%s,%s\n' % (key, value))
+        else:
+            acc_list, avg_acc = average_acc(model, test_set, lr_inner=args.lr_inner, batch_size=args.inner_batch_size, train=train, update_embeddings=args.update_embeddings=="True", exact=False)
+            print("Average accuracy:", avg_acc)
+            with open("../output/gen_acc_%s_%s.csv"%(args.save_prefix,args.data_prefix), "w") as f:
+                for key, value in acc_list.items():
+                    f.write('%s,%s\n' % (key, value))
 
-# Evaluate the model by training it to convergence and measuring how many steps that takes
+
+    # Evaluate the model by training it to convergence and measuring how many steps that takes
 elif args.eval_technique == "converge":
     total_iters = 0
     total_test_acc = 0
