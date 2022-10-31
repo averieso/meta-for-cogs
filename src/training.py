@@ -13,8 +13,8 @@ def get_loss(model, batch, criterion):
 
     # Count how many predicted outputs are correct
     for index, output_guess in enumerate(output):
-        #print("system output: ", len(process_output(output_guess).split()), process_output(output_guess))
-        #print("target output: ", len(outp[index].split()), outp[index])
+       # print("system output: ", len(process_output(output_guess).split()), process_output(output_guess))
+       # print("target output: ", len(outp[index].split()), outp[index])
         for i, s in enumerate(process_output(output_guess).split()):
             #print(i, len(outp[index].split()))
             if len(outp[index].split()) > i and s == outp[index].split()[i]:
@@ -279,7 +279,7 @@ def average_acc(model, dataset, lr_inner=0.01, batch_size=100, train=True, updat
         acc_list[i] = acc
         #acc_list[i]['loss'] = acc
         total_acc += acc
-
+    print(len(dataset))
     average_acc = total_acc * 1.0 / len(dataset)
     
     return acc_list, average_acc
